@@ -16,20 +16,20 @@ let createGrid = [
     let column = FSharpValue.MakeUnion(c, [| |]) :?> Column
     yield Position (row, column), Empty
 ] 
-let grid = createGrid |> Map.ofSeq
 
-let markGrid grid (position:Position) (player: Player) =
+let markGrid grid (position:Position) player =
     match Map.find position grid with
      | Mark _ -> grid
-     | Empty -> Map.add position (Mark player) grid
+     | Empty -> Map.add position player grid
 
-let playX = markGrid grid (Position (Top, Left)) PlayerX
-let playO = markGrid playX (Position (Top, Left)) PlayerO
+let start = createGrid |> Map.ofSeq
+let playX = markGrid start (Position (Top, Left)) (Mark PlayerX)
+let playO = markGrid playX (Position (Top, Left)) (Mark PlayerO)
 
 [<EntryPoint>]
 let main argv = 
     printfn "Hello World!"
-    printfn "%A" grid
+    printfn "%A" start
     printfn "%A" playX
     printfn "%A" playO
     0 // return an integer exit code
