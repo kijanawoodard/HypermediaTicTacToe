@@ -31,9 +31,13 @@ let createGrid = [
     yield Position (row, column), Empty
 ]
 
+let togglePlayer player = 
+    match player with
+        | PlayerX -> PlayerO
+        | PlayerO -> PlayerX
 let acceptPlay game event =
     let mark = Mark event.player
-    { game with grid = Map.add event.position mark game.grid }
+    { game with grid = Map.add event.position mark game.grid; next = togglePlayer event.player }
 
 let markGrid game position player =
     match Map.find position game.grid with
