@@ -10,14 +10,19 @@ type Mark = Mark of Player | Empty
 type Position = Position of Row * Column
 
 type Game = { 
-    Grid: Map<Position, Mark>
-    Next: Player
+    grid: Map<Position, Mark>
+    next: Player
 }
 
 type PlayAccepted = {
-    Position: Position 
-    Player: Player
+    position: Position 
+    player: Player
 }
+
+type Error = AlreadyMarked
+
+type Response = 
+    Accepted of PlayAccepted | Problem of Error
 let createGrid = [
     for r in FSharpType.GetUnionCases typeof<Row> do
     for c in FSharpType.GetUnionCases typeof<Column> do
@@ -27,18 +32,24 @@ let createGrid = [
 ]
 
 let acceptPlay game event =
-    let mark = Mark event.Player
-    { game with Grid = Map.add event.Position mark game.Grid }
+    let mark = Mark event.player
+    { game with grid = Map.add event.position mark game.grid }
 
-let markGrid grid (position:Position) player =
-    let mark = Mark player
-    match Map.find position grid with
-     | Mark _ -> grid
-     | Empty -> Map.add position mark grid
+let markGrid game position player =
+    match Map.find position game.grid with
+     | Mark _ -> Problem AlreadyMarked
+     | Empty -> Accepted { position = position; player = player }
 
-let start = createGrid |> Map.ofSeq
-let playX = markGrid start (Position (Top, Left)) PlayerX
-let playO = markGrid playX (Position (Top, Left)) PlayerO
+let makePlay game position player =
+    let response = markGrid game position player
+    match response with
+     | Accepted accepted -> acceptPlay game accepted
+     | Problem _ -> game
+
+let grid = createGrid |> Map.ofSeq
+let start = { grid = grid; next = PlayerX }
+let playX = makePlay start (Position (Top, Left)) PlayerX
+let playO = makePlay playX (Position (Top, Left)) PlayerO
 
 [<EntryPoint>]
 let main argv = 
